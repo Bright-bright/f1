@@ -1,0 +1,30 @@
+ls -a 查看隐藏文件
+cd -切换回之前的工作目录
+touch .创建隐藏文件	
+cd .目前所在目录
+cd ..退回上一层目录
+cd ../..
+passwd root 改密码
+uname -r 硬核的版本 
+umame  
+cd ~  回到root的家
+cp /etc/passwd /aa 复制到aa目录
+hostname jj改名字	
+ctrl+shift+t 开新终端
+ctrl+page up(down)切换终端
+mkdir -p /aa/bb/cc连续创建
+命令模式下删除
+dd #dd 删除 #行
+x      删除光标所在字符
+shift +c 删除光标后面的本行内容
+命令模式下复制
+yy #yy #代表复制光标以下几行
+p  #p #粘贴几行
+gg 到达文件首行
+G （shift+g）到达文件末尾
+
+
+
+
+
+

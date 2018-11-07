@@ -1,0 +1,149 @@
+协议分层,协议
+应用层：网络服务与最终用户的一个接口  (HTTP、https、FTP、TFTP、SMTP 、SNMP、DNS) （计算机）
+表示层：数据的表现形式，如加密、压缩。
+会话层：建立、管理、中止会话，例如断点续传。
+传输层 (数据段) ：定义传输数据的协议端口号，以及流控和差错校验。（TCP、UDP） （防火墙）
+网络层 (数据包)：进行逻辑地址寻址，实现不同网络之间的通信。（路由器）
+数据链路层 (数据帧)：建立逻辑连接、进行硬件地址寻址、差错校验等功能。（ICMP、IGMP、IP、ARP）（交换机）
+物理层 (比特)：建立、维护、断开物理连接。（网卡）
+
+交换机的工作模式：
+Switch>用户模式
+Switch>enable 
+Switch#特权模式
+Switch#configure  terminal 
+Switch(config)#全局配置模式
+Switch(config)#interface fastEthernet 0/1
+Switch(config-if)#接口模式
+exit返回上一模式
+end直接退到特权模式 （<Ctrl-Z>退出到特权模式）
+
+保存：opy  running-config  startup-config 或 write
+恢复出场设备：特权：erase  startup-config 重启：reload
+禁用DNS：switch(config)#no ip domain-lookup
+配置输出日志同步：                   Switch(config)#line console 0
+(当设备出现状况时，不会干扰)   Switch(config-line)#logging synchronous
+设备配置的准备工作
+空闲一段时间后，重回初始界面的问题
+                                                 switch(config)#line con 0
+                                                 switch(config-line)#exec-timeout 0 0
+
+查看路由表
+C直连路由   S静态路由     S*默认路由
+
+特权模式：show  ip  route 查看路由表    
+                 show  standby  brief 查看HSRP（路由虚拟热备份）   
+                 show running-config   
+                 show  spanning-tree  vlan  1查看生成树   
+                 show mac-address-table 查看MAC地址表  
+                 show  vlan  brief查看vlan信息  
+                 show  interface  f0/5  switchport 查看接口模式   
+                 show  etherchannel  summary 查看以太网通道的配置    
+                 show  ip  route查看路由表   
+                 show  access-lists 查看访问控制列表 
+
+全局模式：
+        交换机：同时将多个接口加入vlan 2
+               interface  range  f0/1 – 10
+               switchport  access  vlan  2
+        路由器：ip  route  目标网络ID  子网掩码  下一跳IP
+        ACL ： { permit | deny } source [ source-wildcard ]
+              access-list  1  deny  192.168.1.1  0.0.0.0
+       NAT:Ip nat inside source static 192.168.1.1 61.159.62.131
+       PAT:ip nat inside source list 1 interface f0/1 overload
+
+接口模式：接口加入vlan
+                 switchport  access  vlan   3
+                 switchport  mode  trunk(配置为中继链路)
+三层交换技术
+（一）启用路由功能 
+ 全局 （config）：
+ip  routing
+interface  vlan  1
+ip  address  192.168.2.254  255.255.255.0
+no  shutdown 
+配置Trunk并指定接口封装为802.1q
+接口模式 （config-if）：
+interface  range  f0/6 – 8
+channel-group  1  mode on
+switchport  trunk  encapsulation  dot1q 
+switchport  mode  trunk
+配置路由接口
+进入接口：no  switchport
+
+
+（二）启动OSPF路由进程（动态路由）
+Router(config)# router ospf process-id(进程1)
+Router(config-router)# network address inverse-mask area area-id 宣告
+需要反掩码eg：network 192.168.1.0 0.0.0.255  area 0
+PVST+ 实现网络的负载分担
+全局：spanning-tree  vlan  2
+          spanning-tree  vlan  1  priority优先级（越小越优先 4096的倍数）
+      或者spanning-tree  vlan  2  root  primary （主根）
+             spanning-tree  vlan  2  root  secondary （次根）
+             （只适用没有配置过的网络）
+查看 特权：show  spanning-tree  vlan  1
+
+热备份路由
+HSRP的配置（在vlan中配置）
+先进入vlan
+in vlan 1
+standby  1   ip   虚拟网关IP
+standby  1   priority  优先级（越大越优先）
+standby   1  preempt   占先权
+查看 特权： show  standby  brief
+
+ACL
+基于源IP  列表号是1～99
+扩展  100～199
+标准  格式  { permit | deny } source [ source-wildcard ]
+全局：access-list  1  deny  192.168.1.1  0.0.0.0
+全局：access-list  1  permit  192.168.1.0  0.0.0.255
+通配符掩码：也叫做反码。用二进制数0和1表示，如果某位为1，表明这一位不需要进行匹配操作，如果为0表明需要严格匹配。
+隐含拒绝语句：
+access-list  1  deny  0.0.0.0  255.255.255.255
+将ACL应用于接口
+接口模式：ip  access-group  列表号 in或out
+注：access-list  1  deny  192.168.1.1  0.0.0.0或写为
+access-list  1  deny  host  192.168.1.1
+
+NAT（网络地址转换）（静态，PAT）
+A类 10.0.0.0~10.255.255.255
+B类 172.16.0.0~172.31.255.255
+C类 192.168.0.0~192.168.255.255
+全局：
+Ip nat inside source static 192.168.1.1 61.159.62.131
+在内外接口上启用NAT：
+出口配置：ip 　nat 　outside
+入口配置：ip 　nat 　inside
+
+默认路由之后,使用 ospf 宣告自己是默认信息源(表示自己有通往
+外网的默认路由)
+Router(config)#ip route 0.0.0.0 0.0.0.0 100.0.0.10
+Router(config)#router ospf 1
+Router(config-router)#default-information originate
+
+
+PAT的配置：
+全局：ip nat inside source list 1 interface f0/1 overload
+开启nat排错功能
+Router#debug  ip  nat 
+S表示源地址
+D表示目的地址
+192.168.1.2->61.159.62.130表示将192.168.1.2转换为61.159.62.130
+关闭nat排错功能
+Router#undebug  ip  nat
+
+STP Spanning Tree Protocol(生成树协议)
+网桥优先级的取值范围0-65535默认值为32768 （优先级必须为4096的倍数）越小越优先
+全局：spanning-tree  vlan  1  priority  优先级的值
+或者在全局模式（推荐此方式）：spanning-tree  vlan  2  root  primary （主根）
+spanning-tree  vlan  2  root  secondary （次根）
+只适用没有配置过的网络
+查看某个vlan的生成树的配置
+特权：show  spanning-tree  vlan  1
+Root ID Priority 20481  表示根网桥的优先级
+Bridge ID Priority 24577  表示当前设备的优先级
+BLK  表示阻塞接口
+FWD 表示转发接口
+

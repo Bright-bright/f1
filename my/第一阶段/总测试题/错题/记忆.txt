@@ -1,0 +1,204 @@
+• IP地址的分类
+• 用于一般计算机网络
+– A类:1 ~ 127        网+主+主+主
+– B类:128 ~ 191    网+网+主+主
+– C类:192 ~ 223    网+网+网+主
+• 组播及科研专用
+– D类:224 ~ 239 组播
+– E类:240 ~ 254 科研
+
+• 发行版的名称/版本由发行方决定
+– Red Hat Enterprise Linux 5/6/7
+– Suse Linux Enterprise 12
+– Debian Linux 7.8
+– Ubuntu Linux 14.10/15.04
+
+Windows：  NTFS    FAT16    FAT32  
+  Linux：  FAT32    ext4（RHEL6）   xfs（RHEL7）
+           SWAP：交换空间(虚拟内存  缓解真实物理内存不足)
+
+  hd,表示IDE设备
+  sd,表示SCSI设备
+  vd,表示虚拟化设备
+  /dev/sda7:表示SCSI设备,第一块磁盘，第7个分区
+
+蓝色：目录     黑色：文本文件  绿色：可以运行的程序
+
+• Linux命令的分类
+– 内部命令:属于解释器的一部分
+– 外部命令:解释器之外的其他程序
+
+cd ~harry   #去往harry用户家目录
+
+• ls — List
+– 格式:ls [选项]... [目录或文件名]
+• 常用命令选项
+– -l :以长格式显示，显示详细属性
+– -h:提供易读的容量单位(K、M等)
+– -d:显示目录本身(而不是内容)的属性
+– -A:包括名称以 . 开头的隐藏文档
+
+– [a-z]:多个字符或连续范围中的一个,若无则忽略
+– {a,min,xy}:多组不同的字符串,全匹配
+
+处理复制时出现重名，强制覆盖
+在本次操作临时取消别名的操作
+[root@localhost /]# \cp -r  /boot/ /mnt/
+
+交互式计算器： bc
+
+rpm -q 软件名...                       #查询当前系统软件是否安装
+
+查看网关命令：
+[root@A ~]# route  -n    #以数字的方式显示
+
+[root@server0 /]# useradd -s /sbin/nologin nsd08
+[root@server0 /]# useradd -G tarena harry  #指定附加组
+
+[nsd01@A ~]$ passwd 
+Changing password for user nsd01.
+Changing password for nsd01.
+(current) UNIX password:           #输入旧密码
+New password:                      #输入新密码
+Retype new password:               #重新输入新密码
+passwd: all authentication tokens updated successfully.
+[nsd01@A ~]$ exit
+
+非交互式设置用户密码
+– echo '密码' | passwd --stdin 用户名
+[root@A ~]# echo  123  |  passwd --stdin nsd01
+
+• 使用 usermod 命令
+– usermod [选项]... 用户名
+• 常用命令选项
+– -u 用户id、-d 家目录路径、-s 登录解释器、-G 附加组
+# usermod -u 1700 -s /sbin/nologin   -d /opt/abc   
+  -G tarena  nsd10
+
+创建一个用户Linux有那些文件会改变？
+[root@A ~]# grep nsd20 /etc/passwd
+[root@A ~]# ls /home/
+[root@A ~]# grep nsd20 /etc/shadow
+[root@A ~]# grep nsd20 /etc/group
+
+查看tar包内的内容
+[root@A ~]# tar -tf /opt/file01.tar.xz
+解压缩释放到指定目录
+# tar -xf   /opt/nsd02.tar.gz   -C    /mnt/ 
+
+NTP时间同步chrony
+[root@A ~]# vim /etc/chrony.conf 
+  #server 0.rhel.pool.ntp.org iburst
+  #server 1.rhel.pool.ntp.org iburst
+  #server 2.rhel.pool.ntp.org iburst
+  server classroom.example.com iburst
+
+cron计划任务
+• 日志文件:/var/log/crond   排除故障
+# crontab -e -u root
+# crontab -l -u root
+# ls /var/spool/cron/   #任务文件存放路径
+# cat /var/spool/cron/root  #查看任务文件内容
+
+附加权限(特殊权限)
+Set GID
+– 适用于目录,Set GID可以使目录下新增的文档自动设
+置与父目录相同的属组
+– 让新增的子文档，自动继承父目录的所属组
+
+ # chmod g+s /nsd09 
+
+创建一个文件1.txt，如果想要让lisi对文件具备读写权限
+  你有几种办法，请写出方案？
+   第一种：如果lisi为其他人   chmod o=rw  1.txt 
+   第二种：chown 修改所属组，将lisi所属的组设置为1.txt所属组
+                   chmod  g=rw  1.txt
+   第三种：chown 修改所有者，将lisi设置为1.txt的所有者
+                   chmod  u=rw  1.txt
+   第四种：通过ACL权限实现  setfacl -m u:lisi:rw 1.txt
+
+使用LDAP认证sssd：主要实现网络用户认证，达到用户的集中管理
+客户端：虚拟机server
+    1.安装sssd软件包，与LDAP服务端沟通的软件
+   [root@server0 /]# yum -y install sssd
+    2.安装authconfig-gtk图形的工具，配置sssd软件包
+   [root@server0 /]# yum -y install authconfig-gtk
+    3.运行authconfig-gtk图形的工具
+   [root@room9pc01 ~]# ssh -X root@172.25.0.11
+   [root@server0 ~]# authconfig-gtk
+      选择LDAP
+      dc=example,dc=com             #指定服务端域名
+      classroom.example.com         #指定服务端主机名
+     勾选TLS加密
+     使用证书加密:
+    http://classroom.example.com/pub/example-ca.crt
+       选择LDAP密码
+   
+     最后选择“应用”   dc为域控制器
+   4.重起服务，验证
+  [root@server0 ~]# systemctl restart sssd
+  [root@server0 ~]# systemctl enable sssd
+  [root@server0 ~]# grep ldapuser0  /etc/passwd
+  [root@server0 ~]# id ldapuser0
+
+家目录漫游
+什么是NFS共享
+• Network File System,网络文件系统
+– 由NFS服务器将指定的文件夹共享给客户机
+– 客户机将此共享目录 mount 到本地目录,访问此共享
+资源就像访问本地目录一样方便
+1. 查看NFS资源
+[root@server0 ~]# showmount -e classroom.example.com
+Export list for classroom.example.com:
+/home/guests   172.25.0.0/255.255.0.0
+服务端的共享路径              共享给那些客户端
+2.访问虚拟机classroom的共享
+# umount /mnt
+# mkdir  /home/guests
+# mount classroom.example.com:/home/guests  /home/guests         
+# ls /home/guests
+
+Set UID
+• 附加在属主的 x 位上
+– 属主的权限标识会变为 s
+– 适用于可执行文件,Set UID可以让使用者具有文件属主的身份及部分权限
+# cp /usr/bin/touch /usr/bin/xixich
+# chmod u+s /usr/bin/xixich
+# ls -l /usr/bin/xixich
+# ls -l /usr/bin/touch
+# su - student
+$ /usr/bin/touch  1.txt
+$ /usr/bin/xixich  2.txt
+$ ls -l 
+
+Sticky Bit                     
+• 附加在其他人的 x 位上
+– 其他人的权限标识会变为 t
+– 适用于开放 w 权限的目录,可以阻止用户滥用 w 写入
+权限(禁止操作别人的文档)
+# chmod o+t /home/public
+
+grep [选项] '匹配模式' 文本文件...
+     -v,取反匹配     -i,忽略大小写
+
+查找文件find
+  -type 类型(f文本文件、d目录、l快捷方式)
+  -name "文档名称"      -iname  忽略大小写名字查找
+  -size +|-文件大小(k、M、G)     +10M #大于10M 
+  -user 用户名   
+  -group  属组
+  -maxdepth  限制目录查找的深度（最大层数）
+  -mtime   过去修改时间  +10 10天前  -10 10天内
+• 使用find命令的 -exec 操作
+– find .. .. -exec 处理命令 {} \;
+– 优势:以 {} 代替每一个结果,逐个处理,遇 \; 结束
+# find /etc/ -name "*tab"  -exec cp {}  /mnt/  \;
+统计命令
+# wc -l /etc/passwd  #统计行数
+
+/proc/:所占用的空间不是硬盘，而是内存
+var:存放经常变化的数据
+首先激活网卡，再去修改DNS服务器配置文件
+
+
+

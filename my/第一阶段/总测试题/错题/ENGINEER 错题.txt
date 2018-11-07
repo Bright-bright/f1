@@ -1,0 +1,129 @@
+Linux中新硬盘经历哪些步骤才能存储文档？
+       识别硬盘----->划分分区------->格式化------>挂载
+开机挂载配置文件六个字段分别为什么？
+        设备路径   挂载点   文件系统     参数    备份标记   检测顺序
+案例4:编写一个判断脚本
+在 server0 上创建 /root/foo.sh 脚本
+ 1)当运行/root/foo.sh redhat,输出为fedora
+ 2)当运行/root/foo.sh fedora,输出为redhat
+ 3)当没有任何参数或者参数不是 redhat 或者fedora时,
+ 其错误输出产生以下信息: /root/foo.sh redhat|fedora
+
+[root@server0 ~]# vim /root/foo.sh
+ #!/bin/bash
+ if  [ $# -eq  0 ];then
+   echo '/root/foo.sh redhat|fedora' >&2  #变成错误输出
+   exit  36                   #程序退出返回值
+ elif  [ $1 == redhat ];then
+   echo fedora
+ elif  [  $1 == fedora ];then
+   echo redhat
+ else
+   echo '/root/foo.sh redhat|fedora' >&2  #变成错误输出
+   exit  25                   #程序退出返回值
+ fi
+                   
+#################################################
+扩展案例：
+[root@server0 /]# vim /root/user.txt
+ 	yuanxiao
+	qingming
+	duanwu
+	wuyi
+	liuyi
+	wusi
+        ......
+ 请利用for循环：
+  该文件/root/user.txt内容，每一行为一个用户的名称
+  创建/root/user.txt文件中所有用户
+
+ [root@server0 ~]# vim /root/for.sh
+ #!/bin/bash
+ for a in `cat /root/user.txt`
+ do
+  useradd $a &> /dev/null
+  echo $a创建成功
+ done
+
+################################################
+案例5:编写一个批量添加用户脚本
+在 server0 上创建 /root/batchusers 脚本
+1)此脚本要求提供用户名列表文件作为参数
+2)如果没有提供参数,此脚本应该给出提示 
+Usage: /root/batchusers,退出并返回相应值
+3)如果提供一个不存在的文件,此脚本应该给出提
+示 Input file not found,退出并返回相应值
+4)新用户的登录Shell为 /bin/false,无需设置密码
+5)用户列表测试文件:
+[root@server0 ~]# cat /root/userlist
+  zhangsan
+  lisi
+  harry
+  natasha
+  dc
+  tc
+  jack
+
+[root@server0 ~]# cat /root/batchusers 
+  #!/bin/bash
+  if  [ $# -eq 0 ];then
+    echo 'Usage: /root/batchusers' >&2
+    exit 2
+  elif  [  -f  $1 ];then
+    for  in  `cat $1`
+    do
+     useradd -s /bin/false $i &> /dev/null
+     echo $i创建成功
+    done
+  else
+    echo 'Input file not found' >&2
+    exit 3
+  fi
+
+3.下列变量名中有效的shell变量名是（  C  ）
+   A：-2-time	B：_2$3     
+    C：trust_no_1   D：2004file
+
+配置nfs共享，配置文件在哪里？
+      /etc/exports
+
+SMB(TCP 139 用户验证)、CIFS(TCP 445 传输数据)
+iSCSI网络磁盘  默认端口：3260
+mariadb数据库服务器，默认端口 3306
+NFS(TCP/UDP 2049)、RPC(TCP/UDP 111)
+
+互联网常见协议：
+       http：超文本传输协议     默认端口号:80
+       https：安全的超文本传输协议（加密协议）    默认端口号:443  
+       FTP：文件传输协议    默认端口号:21
+       DNS：域名解析协议    默认端口号:53
+       SMTP：用户发邮件协议    默认端口号:25
+       pop3：用户收邮件协议    默认端口号:110
+       telnet：远程管理协议     默认端口号:23
+       TFTP：简单的文件传输协议    默认端口号:69
+       SNMP：网络管理协议           默认端口号:161
+
+      协议的端口可以有root改变，也可以具备多个端口
+
+
+查看网关：route -n
+ls -A 查看隐藏文档
+usermod 修改用户 -d
+tar -tf 查看tar 内容
+vim /etc/chrony.conf       NTP 时间同步配置文件
+crontab -e -u root  
+crontab -e -l root
+
+1.vim编辑器命令模式,删除光标之后如何操作？
+      C（大写）   d$
+4.配置nfs共享，配置文件在哪里？
+    /etc/exports
+6.配置Apache的httpd服务时，虚拟Web主机区分方式都有哪些？
+         基于域名、基于端口、基于IP地址
+
+
+
+
+
+
+
